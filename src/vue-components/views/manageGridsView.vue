@@ -124,6 +124,7 @@
     import {constants} from "../../js/util/constants";
     import HeaderIcon from '../../vue-components/components/headerIcon.vue'
     import {gridUtil} from "../../js/util/gridUtil";
+    import {messageUtil} from "../../js/util/messageUtil";
     import Accordion from "../components/accordion.vue";
     import {imageUtil} from "../../js/util/imageUtil";
     import GridLinkModal from "../modals/gridLinkModal.vue";
@@ -285,13 +286,18 @@
                     this.resetFileInput(event);
                     return;
                 }
-                await dataService.importBackupUploadedFile(importFile, (progress, text) => {
+
+                let importData = await dataService.importBackupUploadedFile(importFile, (progress, text) => {
                     MainVue.showProgressBar(progress, {
                         text: text
                     });
                 });
-                this.resetFileInput(event);
-                this.reload();
+
+                // Show success message and reload on close
+                await messageUtil.showImportSuccess(importData, () => {
+                    this.resetFileInput(event);
+                    this.reload();
+                });
             },
             reload: function (openGridId) {
                 let thiz = this;
@@ -464,6 +470,7 @@
                         await util.sleep(100);
                         await updateScreenshot(gridShort.id);
                         if (cancelled) {
+                            urlParamService.removeParam("skipThumbnailCheck");
                             Router.toManageGrids();
                             return;
                         }
@@ -493,7 +500,7 @@
                     totalSize += screenshot.length;
                     let thumbnail = {
                         data: screenshot,
-                        hash: gridUtil.getHash(grid)
+                        shouldUpdate: false
                     };
                     grid.thumbnail = thumbnail;
                     await dataService.updateGrid(grid.id, {

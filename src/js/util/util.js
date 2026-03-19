@@ -57,10 +57,10 @@ util.throttle = function (fn, args, minPauseMs, key) {
     if (!fn || !fn.apply) {
         return;
     }
-    minPauseMs = minPauseMs || 500;
+    minPauseMs = minPauseMs !== undefined ? minPauseMs : 500;
     let historyKey = key || fn;
     let lastCall = _throttleHistory[historyKey];
-    if (!lastCall || new Date().getTime() - lastCall > minPauseMs) {
+    if (!lastCall || new Date().getTime() - lastCall >= minPauseMs) {
         fn.apply(null, args);
         _throttleHistory[historyKey] = new Date().getTime();
     }
@@ -126,15 +126,24 @@ util.copyBlobToClipboard = async function(blob) {
     }
 };
 
-util.copyCollectContentToClipboard = async function() {
-    let blob = await util.getCollectContentBlob(5);
+util.copyCollectContentToClipboard = async function () {
+    let blob = await util.getCollectContentBlob({scale: 5, bgColor: constants.COLORS.TRANSPARENT});
     await util.copyBlobToClipboard(blob);
 }
 
-util.getCollectContentBlob = async function(scale = 2) {
+/**
+ *
+ * @param options
+ * @param options.scale
+ * @param options.bgColor
+ * @return {Promise<unknown>}
+ */
+util.getCollectContentBlob = async function (options = {}) {
+    options.scale = options.scale || 2;
     let imageCanvas = await imageUtil.getScreenshot(".collect-items-container", {
-        scale: scale,
-        returnCanvas: true
+        scale: options.scale,
+        returnCanvas: true,
+        bgColor: options.bgColor
     });
     if (!imageCanvas) {
         return null;
@@ -385,6 +394,27 @@ util.base64ToBytes = function (base64) {
 };
 
 /**
+ * converts a base64 directly to an ArrayBuffer
+ * @param base64
+ * @returns {ArrayBufferLike}
+ */
+util.base64ToArrayBuffer = function(base64) {
+    let binaryString = null;
+    try {
+        binaryString = window.atob(base64);
+    } catch (e) {
+        log.warn('error decoding base64 audio', e);
+        return new Uint8Array(0).buffer;
+    }
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+};
+
+/**
  * Converts the given bytes (Uint8Array) into a base64 encoded string.
  * @param {*} bytes 
  * @returns 
@@ -569,6 +599,19 @@ util.getEmojis = function(str) {
 util.isOnlyEmojis = function(str) {
     const matches = util.getEmojis(str);
     return matches.join('') === str; // If the matched emojis fully cover the input string, return true
+}
+
+/**
+ * limits a value to the given bounds
+ * @param value
+ * @param min
+ * @param max
+ * @param defaultValue
+ * @returns {number}
+ */
+util.limitValue = function(value, min, max, defaultValue) {
+    value = Number.isFinite(value) ? value : defaultValue;
+    return Math.min(Math.max(value, min), max);
 }
 
 export { util };

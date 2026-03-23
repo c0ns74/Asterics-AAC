@@ -22,6 +22,7 @@ import { util } from '../../util/util.js';
 import { boardService } from '../boards/boardService';
 
 let dataService = {};
+let metadataFallback = new MetaData();
 
 /**
  * gets a grid by ID.
@@ -297,14 +298,13 @@ dataService.getMetadata = function () {
     return new Promise((resolve) => {
         databaseService.getObject(MetaData).then((result) => {
             let returnValue = null;
-            if (!result) {
-                returnValue = new MetaData();
-            } else if (Array.isArray(result)) {
+            if (Array.isArray(result)) {
                 result.sort((a, b) => a.id.localeCompare(b.id)); // always prefer older metadata objects
                 returnValue = result[0];
             } else {
                 returnValue = result;
             }
+            returnValue = returnValue || metadataFallback;
             if (!localStorageService.getAppSettings().syncNavigation) {
                 let localMetadata = localStorageService.getUserSettings().metadata;
                 if (localMetadata) {

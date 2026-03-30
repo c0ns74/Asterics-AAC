@@ -72,7 +72,7 @@ import {dataService} from "../../../js/service/data/dataService.js";
 import {GridActionCollectElement} from "../../../js/model/GridActionCollectElement.js";
 import { imageUtil } from '../../../js/util/imageUtil';
 
-const MAX_RECORD_TIME = 10000;
+const MAX_RECORD_TIME = 300000;
 
 export default {
     props: ['action', 'gridData'],
@@ -111,7 +111,7 @@ export default {
     methods: {
         changedFile() {
             let thiz = this;
-            if ($('#inputFile')[0].files[0].size > 200 * 1024) {
+            if ($('#inputFile')[0].files[0].size > 102400 * 1024) {
                 this.showError2 = true;
                 return;
             }

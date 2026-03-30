@@ -6,8 +6,10 @@ import { MapCache } from '../../util/MapCache';
 import { localStorageService } from './localStorageService';
 import { modelUtil } from '../../util/modelUtil';
 import { constants } from '../../util/constants';
+import {util} from "../../util/util";
 
 let STATIC_USER_PW_SALT = 'STATIC_USER_PW_SALT';
+let KEY_BACKUP_SALTS = 'KEY_BACKUP_SALTS';
 
 let encryptionService = {};
 let _encryptionSalts = [];
@@ -201,17 +203,44 @@ encryptionService.getUserPasswordHash = function (plaintextPassword) {
  * sets the encryption properties
  * @param hashedPassword the hashed user password
  * @param salts array of salts to use -> ID(s) of metadata object(s)
+ * @param isLocalUser true if the user is local and not online
  */
 encryptionService.setEncryptionProperties = function (hashedPassword, salts, isLocalUser) {
     _saltUsername = localStorageService.getAutologinOrActiveUser();
+    let fallbackSalts = getFallbackSalts();
     hashedPassword = hashedPassword || '';
     _encryptionBasePassword = hashedPassword;
     _encryptionSalts = Array.isArray(salts) ? salts : [salts];
+    _encryptionSalts = _encryptionSalts.concat(fallbackSalts);
     _encryptionSalts = _encryptionSalts.filter(e => !!e);
     _isLocalUser = isLocalUser;
     _decryptionCache.clearAll();
     _hashCache.clearAll();
 };
+
+/**
+ * returns all current and previously known users logged in to this device.
+ * these are used as fallback for encryption salts - for trying to fix decryption errors
+ * due to https://github.com/asterics/Asterics-AAC/issues/781
+ *
+ * @return {*|*[]}
+ */
+function getFallbackSalts() {
+    let currentUsers = localStorageService.getSavedUsers() || [];
+    let backupSalts = localStorageService.getJSON(KEY_BACKUP_SALTS) || [];
+    backupSalts = util.deduplicateArray(currentUsers.concat(backupSalts));
+    localStorageService.saveJSON(KEY_BACKUP_SALTS, backupSalts);
+    return backupSalts;
+}
+
+window.addFallbackSalt = function (salt) {
+    let salts = getFallbackSalts();
+    if (!salts.includes(salt)) {
+        salts.push(salt);
+        _encryptionSalts.push(salt);
+        localStorageService.saveJSON(KEY_BACKUP_SALTS, salts);
+    }
+}
 
 function getEncryptionKey(salt) {
     return encryptionService.getStringHash('' + salt + _encryptionBasePassword);

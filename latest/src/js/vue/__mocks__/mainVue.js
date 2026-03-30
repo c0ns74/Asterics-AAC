@@ -1,3 +1,0 @@
-let MainVue = {};
-
-export { MainVue };

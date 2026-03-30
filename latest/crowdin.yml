@@ -1,3 +1,0 @@
-files:
-  - source: /app/lang/i18n.en.json
-    translation: /app/lang/i18n.%osx_locale%.json

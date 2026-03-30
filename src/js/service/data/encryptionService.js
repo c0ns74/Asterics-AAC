@@ -12,6 +12,7 @@ let STATIC_USER_PW_SALT = 'STATIC_USER_PW_SALT';
 let encryptionService = {};
 let _encryptionSalts = [];
 let _encryptionBasePassword = null;
+let _saltUsername = '';
 let _isLocalUser = false;
 let _decryptionCache = new MapCache();
 let _hashCache = new MapCache();
@@ -43,10 +44,9 @@ encryptionService.encryptObject = function (object) {
     let jsonString = JSON.stringify(object);
     let shortJsonString = JSON.stringify(dataUtil.removeLongPropertyValues(object));
     let shortVersionDifferent = jsonString !== shortJsonString;
-    let salt = localStorageService.getAutologinOrActiveUser();
-    encryptedObject.encryptedDataBase64 = encryptionService.encryptString(jsonString, salt);
+    encryptedObject.encryptedDataBase64 = encryptionService.encryptString(jsonString, _saltUsername);
     encryptedObject.encryptedDataBase64Short = shortVersionDifferent
-        ? encryptionService.encryptString(shortJsonString, salt)
+        ? encryptionService.encryptString(shortJsonString, _saltUsername)
         : null;
     return encryptedObject;
 };
@@ -77,8 +77,7 @@ encryptionService.decryptObjects = function (encryptedObjects, options) {
             let decryptedObject = null;
             let salts = _encryptionSalts;
             if (modelUtil.getMajorVersion(encryptedObject) >= constants.MODEL_VERSION_CHANGED_TO_USERNAME_AS_SALT) {
-                let username = localStorageService.getAutologinOrActiveUser();
-                salts = [username].concat(_encryptionSalts);
+                salts = [_saltUsername].concat(_encryptionSalts);
             }
             if (onlyShortVersion) {
                 let toDecrypt = encryptedObject.encryptedDataBase64Short || encryptedObject.encryptedDataBase64;
@@ -204,6 +203,7 @@ encryptionService.getUserPasswordHash = function (plaintextPassword) {
  * @param salts array of salts to use -> ID(s) of metadata object(s)
  */
 encryptionService.setEncryptionProperties = function (hashedPassword, salts, isLocalUser) {
+    _saltUsername = localStorageService.getAutologinOrActiveUser();
     hashedPassword = hashedPassword || '';
     _encryptionBasePassword = hashedPassword;
     _encryptionSalts = Array.isArray(salts) ? salts : [salts];
@@ -224,6 +224,7 @@ encryptionService.resetEncryptionProperties = function () {
     log.debug('reset encryption properties...');
     _encryptionSalts = [];
     _encryptionBasePassword = null;
+    _saltUsername = '';
     _isLocalUser = false;
 };
 

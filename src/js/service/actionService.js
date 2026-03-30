@@ -179,6 +179,18 @@ async function doAction(gridElement, action, options = {}) {
                 audioUtil.stopAudio();
                 audioUtil.playAudio(action.dataBase64);
             }
+        case 'GridActionAudio':
+            if (action.dataBase64){
+               audioUtil.stopAudio();
+                audioUtil.playAudio(action.dataBase64);
+                console.log("Audio ejecutado en el elemento:", gridElement.id);
+                        const logUso = JSON.parse
+                (localStorage.getItem('log_fono'||'[]');
+                        logUso.push({ id: 
+                            gridElement.id, fecha: newDate().toISOString()});
+
+                localStorage.setItem('log_fono', JSON.stringify(logUso));
+            }
             break;
         case 'GridActionWordForm':
             switch (action.type) {

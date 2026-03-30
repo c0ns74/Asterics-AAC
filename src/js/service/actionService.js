@@ -174,11 +174,7 @@ async function doAction(gridElement, action, options = {}) {
                 });
             }
             break;
-        case 'GridActionAudio':
-            if (action.dataBase64) {
-                audioUtil.stopAudio();
-                audioUtil.playAudio(action.dataBase64);
-            }
+            
         case 'GridActionAudio':
             if (action.dataBase64){
                audioUtil.stopAudio();

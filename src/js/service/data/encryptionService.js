@@ -98,7 +98,7 @@ encryptionService.decryptObjects = function (encryptedObjects, options) {
             decryptedObjects.push(decryptedObject);
         } catch (e) {
             log.error('error decrypting object: ' + encryptedObject.modelName + ', id: ' + encryptedObject.id);
-            log.error(e);
+            log.debug(e);
         }
     });
 
@@ -159,17 +159,20 @@ encryptionService.decryptString = function (encryptedString, encryptionSalt) {
     return decryptedString;
 };
 
-encryptionService.decryptStringTrySalts = function (encryptedString, trySalts) {
+encryptionService.decryptStringTrySalts = function (encryptedString, trySalts, omitLog = false) {
     try {
         trySalts = JSON.parse(JSON.stringify(trySalts));
         return encryptionService.decryptString(encryptedString, trySalts.shift());
     } catch (e) {
         if (trySalts.length === 0) {
-            log.error("wasn't able to decrypt string, no remaining salts for trying!");
+            log.debug("wasn't able to decrypt string, no remaining salts for trying!");
             throw e;
         }
-        log.warn("wasn't able to decrypt string, try next salt...", trySalts[0]);
-        return encryptionService.decryptStringTrySalts(encryptedString, trySalts);
+        if (!omitLog) {
+            log.warn("wasn't able to decrypt string, try next salts...");
+            log.debug("salts:", trySalts);
+        }
+        return encryptionService.decryptStringTrySalts(encryptedString, trySalts, true);
     }
 };
 

@@ -72,7 +72,7 @@ import {dataService} from "../../../js/service/data/dataService.js";
 import {GridActionCollectElement} from "../../../js/model/GridActionCollectElement.js";
 import { imageUtil } from '../../../js/util/imageUtil';
 
-const MAX_RECORD_TIME =300000;
+const MAX_RECORD_TIME = 300000;
 
 export default {
     props: ['action', 'gridData'],
@@ -144,7 +144,7 @@ export default {
                     this.action.mimeType = data.mimeType;
                     this.action.durationMs = this.recordTimeMs;
                     this.$forceUpdate();
-                });
+                }, 300000);
             } catch (e) {
                 this.showError = true;
                 return;
@@ -153,7 +153,7 @@ export default {
             this.recordTimeMs = 0;
             this.intervalHandler = setInterval(() => {
                 this.recordTimeMs += 100;
-                if (this.recordTimeMs === MAX_RECORD_TIME) {
+                if (this.recordTimeMs >= MAX_RECORD_TIME) {
                     this.stopRecording();
                 }
             }, 100);

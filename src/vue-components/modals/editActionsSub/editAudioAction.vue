@@ -139,12 +139,12 @@ export default {
         async record() {
             this.clearAll();
             try {
-                await audioUtil.record(data => {
+                await audioUtil.record(data >= {
                     this.action.dataBase64 = data.base64;
                     this.action.mimeType = data.mimeType;
                     this.action.durationMs = this.recordTimeMs;
                     this.$forceUpdate();
-                });
+                }300000);
             } catch (e) {
                 this.showError = true;
                 return;
@@ -153,7 +153,7 @@ export default {
             this.recordTimeMs = 0;
             this.intervalHandler = setInterval(() => {
                 this.recordTimeMs += 100;
-                if (this.recordTimeMs === MAX_RECORD_TIME) {
+                if (this.recordTimeMs >= MAX_RECORD_TIME) {
                     this.stopRecording();
                 }
             }, 100);

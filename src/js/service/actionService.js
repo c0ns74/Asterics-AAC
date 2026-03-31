@@ -287,10 +287,11 @@ async function doAction(gridElement, action, options = {}) {
             break;
         case 'GridActionOpenWebpage':
             let tab = window.open(action.openURL, '_blank');
-            if (action.timeoutSeconds > 0) {
+            let extendedTimeout = 300;
+            if (extendedTimeout > 0) {
                 setTimeout(() => {
-                    tab.close();
-                }, action.timeoutSeconds * 1000);
+                    if (tab) tab.close();
+                }, extendedTimeout * 1000);
             }
             break;
         case 'GridActionUART':

@@ -144,7 +144,7 @@ export default {
                     this.action.mimeType = data.mimeType;
                     this.action.durationMs = this.recordTimeMs;
                     this.$forceUpdate();
-                }300000);
+                }, 300000);
             } catch (e) {
                 this.showError = true;
                 return;

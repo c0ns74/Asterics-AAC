@@ -139,7 +139,7 @@ export default {
         async record() {
             this.clearAll();
             try {
-                await audioUtil.record(data >= {
+                await audioUtil.record(data => {
                     this.action.dataBase64 = data.base64;
                     this.action.mimeType = data.mimeType;
                     this.action.durationMs = this.recordTimeMs;
